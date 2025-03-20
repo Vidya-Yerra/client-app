@@ -23,21 +23,14 @@ export default function Login() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // IMPORTANT: allows cookies to be saved
         body: JSON.stringify(formData),
       })
 
       const data = await res.json()
 
       if (res.ok) {
-        const { user, token } = data
-
-        // Store both user and token
-        localStorage.setItem('user', JSON.stringify(user))
-        localStorage.setItem('token', token)
         
-        
-
-        console.log("######")
         router.push('/home/clients');
       } else {
         alert(data.message || 'Login failed')

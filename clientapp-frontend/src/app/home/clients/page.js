@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import SearchBar from '../../../components/searchbar';
-import YearSwitcher from '../../../components/yearswitcher';
+import YearSwitcher from '../../../components/yearswitch';
 import Pagination from '../../../components/pagination';
 import ClientTable from '../../../components/clienttable';
 

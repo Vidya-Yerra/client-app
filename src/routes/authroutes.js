@@ -47,12 +47,19 @@ router.post('/login', async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: 'Invalid email or password' });
 
-    console.log('JWT_SECRET used to sign:', process.env.JWT_SECRET);
+    
     const token = jwt.sign(
       { userId: user._id},
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: false, // true if using HTTPS
+      sameSite: 'lax', // 'none' if cross-site (with HTTPS)
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     res.json({
       token,
