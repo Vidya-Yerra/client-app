@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 const months = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -21,7 +21,7 @@ function getClientStatus(payments, fixedAmount) {
       updatedStatus.push({ status: '✅', balance: 0 });
     } else {
       carryForward = 0;
-      updatedStatus.push({ status: '❌', balance: balance });
+      updatedStatus.push({ status: '❌', balance });
     }
   }
 
@@ -29,22 +29,43 @@ function getClientStatus(payments, fixedAmount) {
 }
 
 export default function ClientTable({ clients, year }) {
+  const [clientData, setClientData] = useState([]);
+
+  useEffect(() => {
+    // Initialize client data with editable payments
+    const initialData = clients.map(client => ({
+      ...client,
+      editablePayments: Array.isArray(client.payments?.[year])
+        ? [...client.payments[year]]
+        : Array(12).fill(0)
+
+    }));
+    setClientData(initialData);
+  }, [clients, year]);
+
+  const handlePaymentChange = (clientIndex, monthIndex, value) => {
+    const updated = [...clientData];
+    const amount = parseFloat(value) || 0;
+    updated[clientIndex].editablePayments[monthIndex] = amount;
+    setClientData(updated);
+  };
+
   return (
     <div className="overflow-auto border rounded shadow bg-white">
-      <table className="w-full border-collapse min-w-[900px]">
+      <table className="w-full border-collapse min-w-[1000px]">
         <thead className="bg-gray-100 text-left">
           <tr>
             <th className="p-2 border">Name</th>
             <th className="p-2 border">Phone</th>
             <th className="p-2 border">Fixed Amount</th>
             {months.map((month) => (
-              <th key={month} className="p-2 border">{month}</th>
+              <th key={month} className="p-2 border text-center">{month}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {clients.map((client, index) => {
-            const status = getClientStatus(client.payments?.[year] || [], client.fixedAmount);
+          {clientData.map((client, index) => {
+            const status = getClientStatus(client.editablePayments, client.fixedAmount);
 
             return (
               <tr key={index} className="text-sm hover:bg-gray-50">
@@ -53,9 +74,16 @@ export default function ClientTable({ clients, year }) {
                 <td className="p-2 border">${client.fixedAmount}</td>
                 {status.map((month, i) => (
                   <td key={i} className="p-2 border text-center">
-                    {month.status}
-                    <br />
-                    <span className="text-xs text-gray-600">Balance: {month.balance}</span>
+                    <input
+                      type="number"
+                      className="w-16 p-1 border rounded text-center mb-1"
+                      value={client.editablePayments[i]}
+                      onChange={(e) => handlePaymentChange(index, i, e.target.value)}
+                    />
+                    <div className="mt-1">
+                      {month.status}
+                      <div className="text-xs text-gray-600">Bal: {month.balance}</div>
+                    </div>
                   </td>
                 ))}
               </tr>
