@@ -37,10 +37,11 @@ const clientSchema = new mongoose.Schema(
     name: { type: String, required: true },
     phone: { type: String, required: true },
     fixedAmount: { type: Number, required: true },
+    
+    // ✅ Changed from Map to Object
     payments: {
-      type: Map,
-      of: yearSchema,
-      default: () => new Map(), // year: { January: {}, ... }
+      type: Object, // Use plain object for compatibility
+      default: {},
     },
   },
   { timestamps: true }
@@ -55,7 +56,7 @@ clientSchema.methods.recalculatePayments = function (year) {
     "July", "August", "September", "October", "November", "December"
   ];
 
-  const yearData = this.payments.get(year);
+  const yearData = this.payments[year];
   if (!yearData) return;
 
   let totalExpected = 0;
@@ -79,16 +80,16 @@ clientSchema.methods.recalculatePayments = function (year) {
     };
   });
 
-  this.payments.set(year, yearData);
+  this.payments[year] = yearData;
 };
 
 // Update a specific month's payment
 clientSchema.methods.updateMonthlyPayment = function (year, month, amountToAdd) {
-  if (!this.payments.has(year)) {
-    this.payments.set(year, {});
+  if (!this.payments[year]) {
+    this.payments[year] = {};
   }
 
-  const yearData = this.payments.get(year);
+  const yearData = this.payments[year];
   const monthData = yearData[month] || {
     amount: 0,
     isPaid: false,
@@ -99,7 +100,8 @@ clientSchema.methods.updateMonthlyPayment = function (year, month, amountToAdd) 
   monthData.amount += amountToAdd;
   yearData[month] = monthData;
 
-  this.payments.set(year, yearData);
+  this.payments[year] = yearData;
+  this.markModified("payments"); // Notify Mongoose that payments has changed
   this.recalculatePayments(year);
 };
 

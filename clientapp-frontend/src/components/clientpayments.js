@@ -1,34 +1,51 @@
 import React, { useState, useEffect } from 'react';
 
-const ClientPayments = ({ clientData }) => {
-  const [payments, setPayments] = useState(clientData.payments || {});
+const ClientPayments = ({ clientId, clientData }) => {
+  const [payments, setPayments] = useState({});
   const [updatedPayments, setUpdatedPayments] = useState({});
 
-  useEffect(() => {
-    setUpdatedPayments(payments);
-  }, [payments]);
+  // Fetch client payment data
+  const fetchPayments = async () => {
+    const token = localStorage.getItem('token');
 
+    try {
+      const response = await fetch(`http://localhost:5000/clients/${clientId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      setPayments(data.payments || {});
+      setUpdatedPayments(data.payments || {});
+    } catch (error) {
+      console.error('Error fetching client data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPayments();
+  }, [clientId]);
+
+  // Handle input change
   const handlePaymentChange = (year, month, newAmount) => {
     setUpdatedPayments((prevState) => {
       const updatedYear = { ...prevState[year] };
       const fixedAmount = clientData.fixedAmount;
 
-      // Get the existing month data or initialize an empty object if not available
       const previousMonthData = updatedYear[month] || {
         amount: 0,
         isPaid: false,
-        balance: fixedAmount, // Set initial balance as fixedAmount
+        balance: fixedAmount,
       };
 
-      // Calculate the remaining balance after entering the new payment
-      const remainingBalance = previousMonthData.balance - newAmount;
+      const remainingBalance = fixedAmount - newAmount;
 
-      // Update the status based on the remaining balance (if balance is 0, it is paid)
       updatedYear[month] = {
         ...previousMonthData,
         amount: newAmount,
-        balance: remainingBalance >= 0 ? remainingBalance : 0, // Prevent negative balance
-        isPaid: remainingBalance <= 0, // If the remaining balance is 0 or negative, the payment is done
+        balance: remainingBalance >= 0 ? remainingBalance : 0,
+        isPaid: remainingBalance <= 0,
       };
 
       return {
@@ -38,25 +55,10 @@ const ClientPayments = ({ clientData }) => {
     });
   };
 
-  const handleSave = async () => {
-    try {
-      // Send the updated payments to the backend
-      const response = await fetch('/api/updatePayments', {
-        method: 'POST',
-        body: JSON.stringify(updatedPayments),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await response.json();
-      console.log('Updated Payments:', data);
-    } catch (error) {
-      console.error('Error saving payments:', error);
-    }
-  };
-
   return (
     <div>
       <h2>Client Payments</h2>
-      {Object.keys(payments).map((year) => (
+      {Object.keys(updatedPayments).map((year) => (
         <div key={year}>
           <h3>{year}</h3>
           <table>
@@ -69,8 +71,8 @@ const ClientPayments = ({ clientData }) => {
               </tr>
             </thead>
             <tbody>
-              {Object.keys(payments[year]).map((month) => {
-                const { amount, balance, isPaid } = updatedPayments[year]?.[month] || {};
+              {Object.keys(updatedPayments[year]).map((month) => {
+                const { amount, balance, isPaid } = updatedPayments[year][month] || {};
                 return (
                   <tr key={month}>
                     <td>{month}</td>
@@ -83,9 +85,7 @@ const ClientPayments = ({ clientData }) => {
                         }
                       />
                     </td>
-                    <td>
-                      {isPaid ? '✅' : '❌'}
-                    </td>
+                    <td>{isPaid ? '✅' : '❌'}</td>
                     <td>
                       Balance: {balance !== undefined ? balance : clientData.fixedAmount}
                     </td>
@@ -94,7 +94,6 @@ const ClientPayments = ({ clientData }) => {
               })}
             </tbody>
           </table>
-          <button onClick={handleSave}>Save</button>
         </div>
       ))}
     </div>
