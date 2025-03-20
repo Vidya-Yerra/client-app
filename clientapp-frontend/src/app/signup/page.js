@@ -11,7 +11,7 @@ export default function Signup() {
     email: '',
     phone: '',
     password: '',
-    role: 'user'
+    
   });
 
   const handleChange = (e) => {
@@ -33,7 +33,7 @@ export default function Signup() {
       const data = await res.json();
       if (res.ok) {
         alert('Signup successful!');
-        router.push('/home'); // ✅ Redirect to login after success
+        router.push('/home/clients'); // ✅ Redirect to login after success
       } else {
         alert(data.message || 'Signup failed');
       }
@@ -94,18 +94,7 @@ export default function Signup() {
               placeholder="Create a password"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Role</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-400"
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
+          
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"

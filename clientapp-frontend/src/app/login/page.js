@@ -31,18 +31,14 @@ export default function Login() {
       if (res.ok) {
         const { user, token } = data
 
-        // ✅ Store both user and token
+        // Store both user and token
         localStorage.setItem('user', JSON.stringify(user))
         localStorage.setItem('token', token)
+        
+        
 
-        alert('Login successful!')
-
-        // ✅ Route based on role
-        if (user.role === 'admin') {
-          router.push('/admin-home')
-        } else {
-          router.push('/user-home')
-        }
+        console.log("######")
+        router.push('/home/clients');
       } else {
         alert(data.message || 'Login failed')
       }

@@ -10,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, phone, password, role } = req.body;
+    const { name, email, phone, password } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser)
@@ -23,7 +23,7 @@ router.post('/register', async (req, res) => {
       email,
       phone,
       password: hashedPassword,
-      role: role || 'user',
+      
     });
 
     await user.save();
@@ -49,7 +49,7 @@ router.post('/login', async (req, res) => {
 
     console.log('JWT_SECRET used to sign:', process.env.JWT_SECRET);
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { userId: user._id},
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
@@ -61,7 +61,7 @@ router.post('/login', async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role,
+        
       },
     });
   } catch (err) {
