@@ -30,7 +30,7 @@ export default function Login() {
       const data = await res.json()
 
       if (res.ok) {
-        
+        localStorage.setItem('token', data.token);
         router.push('/home/clients');
       } else {
         alert(data.message || 'Login failed')

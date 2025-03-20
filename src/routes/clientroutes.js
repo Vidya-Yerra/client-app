@@ -30,9 +30,20 @@ router.post('/', verifyToken, async (req, res) => {
 // Get all clients for a logged-in user
 router.get('/', verifyToken, async (req, res) => {
   try {
+    // Log the userId to ensure the authentication process is correct
+    console.log('Authenticated User ID:', req.userId);
+
     const clients = await Client.find({ user: req.userId }).sort({ createdAt: -1 });
+
+    // Check if clients exist for the user
+    if (!clients || clients.length === 0) {
+      return res.status(404).json({ message: 'No clients found for this user.' });
+    }
+
+    // Send the clients as a response
     res.status(200).json(clients);
   } catch (err) {
+    console.error('Error fetching clients:', err.message);
     res.status(500).json({ message: 'Error fetching clients', error: err.message });
   }
 });

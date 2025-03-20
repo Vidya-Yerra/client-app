@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import SearchBar from '../../../components/searchbar';
 import YearSwitcher from '../../../components/yearswitch';
@@ -14,16 +15,41 @@ export default function ClientsPage() {
   const pageSize = 10;
 
   useEffect(() => {
-    const data = localStorage.getItem('clients');
-    if (data) {
-      const parsed = JSON.parse(data);
-      setClients(parsed);
-      setFilteredClients(parsed);
-    }
+    const fetchClients = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          return;
+        }
+  
+        const response = await fetch('http://localhost:5000/clients', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+  
+        const result = await response.json();
+        console.log('Fetched clients:', result);  // Log the response to see the data
+  
+        if (response.ok) {
+          setClients(result);  // Set clients from the response
+          setFilteredClients(result);  // Update the filtered clients
+        } else {
+          console.error(result.message || 'Failed to fetch clients');
+        }
+      } catch (err) {
+        console.error('Error fetching clients:', err);
+      }
+    };
+  
+    fetchClients();
   }, []);
+  
+  
 
   useEffect(() => {
-    const filtered = clients.filter((client) =>
+    const filtered = clients.filter(client =>
       client.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredClients(filtered);
