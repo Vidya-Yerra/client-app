@@ -8,25 +8,37 @@ const months = [
 ];
 
 function getClientStatus(payments, fixedAmount) {
-  const updatedStatus = [];
-  let carryForward = 0;
-
-  for (let i = 0; i < 12; i++) {
-    const paid = payments?.[i] || 0;
-    const totalPaid = paid + carryForward;
-    const balance = fixedAmount - totalPaid;
-
-    if (balance <= 0) {
+    const updatedStatus = [];
+    const monthlyBalances = [];
+    let carryForward = 0;
+  
+    // 1st pass: compute balances and temporary status
+    for (let i = 0; i < 12; i++) {
+      const paid = payments?.[i] || 0;
+      const totalPaid = paid + carryForward;
+      const balance = Math.max(fixedAmount - totalPaid, 0);
       carryForward = totalPaid - fixedAmount;
-      updatedStatus.push({ status: '✅', balance: 0 });
-    } else {
-      carryForward = 0;
-      updatedStatus.push({ status: '❌', balance });
+  
+      monthlyBalances.push(balance);
+      updatedStatus.push({ status: balance > 0 ? '❌' : '✅', balance });
     }
+  
+    // 2nd pass: update statuses based on cumulative catch-up
+    for (let i = 0; i < 12; i++) {
+      const totalPaidTillNow = payments?.slice(0, i + 1).reduce((sum, val) => sum + val, 0);
+      const expectedTillNow = fixedAmount * (i + 1);
+  
+      if (totalPaidTillNow >= expectedTillNow) {
+        // Mark all previous months as ✅
+        for (let j = 0; j <= i; j++) {
+          updatedStatus[j].status = '✅';
+        }
+      }
+    }
+  
+    return updatedStatus;
   }
-
-  return updatedStatus;
-}
+  
 
 export default function ClientTable({ clients, year }) {
   const [clientData, setClientData] = useState([]);
