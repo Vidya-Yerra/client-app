@@ -40,7 +40,7 @@ router.get('/', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'No clients found for this user.' });
     }
     console.log(
-      
+
     )
     // Send the clients as a response
     res.status(200).json(clients);
@@ -154,6 +154,59 @@ router.post('/:clientId/payments', verifyToken, async (req, res) => {
 
 
 // Upload clients via CSV
-router.post('/upload', verifyToken, upload.single('file'), uploadCSV);
+router.post("/upload-csv", verifyToken, async (req, res) => {
+  try {
+    const { clients } = req.body;
+    const currentYear = new Date().getFullYear().toString();
 
+    // Default monthly payment structure
+    const defaultMonthly = {
+      amount: 0,
+      isPaid: false,
+      carriedFromPrevious: 0,
+      balance: 0,
+    };
+    console.log("req.body:",req.body);
+    console.log("req:",req);
+
+    // Build full year
+    const defaultYearPayments = {
+      January: { ...defaultMonthly },
+      February: { ...defaultMonthly },
+      March: { ...defaultMonthly },
+      April: { ...defaultMonthly },
+      May: { ...defaultMonthly },
+      June: { ...defaultMonthly },
+      July: { ...defaultMonthly },
+      August: { ...defaultMonthly },
+      September: { ...defaultMonthly },
+      October: { ...defaultMonthly },
+      November: { ...defaultMonthly },
+      December: { ...defaultMonthly },
+    };
+
+    const bulkOps = clients.map((client) => ({
+      updateOne: {
+        filter: { phone: client.phone, user: req.userId },
+        update: {
+          $setOnInsert: {
+            payments: { [currentYear]: defaultYearPayments },
+          },
+          $set: {
+            name: client.name,
+            fixedAmount: client.fixedAmount,
+            user: req.userId,
+          },
+        },
+        upsert: true,
+      },
+    }));
+
+    await Client.bulkWrite(bulkOps);
+    res.status(200).json({ message: "Clients uploaded successfully." });
+  } catch (error) {
+    console.error("CSV Upload Error:", error);
+    res.status(500).json({ error: "Server error uploading clients." });
+  }
+});
 export default router;

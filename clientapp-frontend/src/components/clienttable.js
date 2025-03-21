@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Papa from "papaparse";
 
 
 const months = [
@@ -164,6 +165,53 @@ export default function ClientTable({ clients, year, onSavePage }) {
     }
   };
   
+  const handleCSVUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const currenttoken = localStorage.getItem("token");
+    if (!currenttoken) {
+      alert("Please log in to upload.");
+      return;
+    }
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        const parsedClients = results.data
+        .filter(row => row.name && row.phone && row.fixedamount)
+        .map((row) => ({
+          name: row.name,
+          phone: row.phone,
+          fixedAmount: row.fixedamount,
+        }));
+        console.log("parsedclients:",parsedClients);
+        try {
+          const response = await fetch("http://localhost:5000/clients/upload-csv", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              'Authorization': `Bearer ${currenttoken}`
+            },
+            body: JSON.stringify({
+              clients: parsedClients,
+               
+            }),
+          });
+  
+          if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+          }
+  
+          alert("CSV uploaded and clients saved!");
+
+        } catch (error) {
+          console.error("Upload failed", error);
+        }
+      },
+    });
+  };
+  
 
   return (
     <div className="overflow-auto border rounded shadow bg-white p-4">
@@ -211,6 +259,24 @@ export default function ClientTable({ clients, year, onSavePage }) {
           </button>
         </div>
       )}
+
+      {/* Upload CSV File Button */}
+      <div className="mb-4">
+        <button
+          onClick={() => document.getElementById('csvUpload').click()}
+          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded"
+        >
+          Upload CSV
+        </button>
+        <input
+          type="file"
+          id="csvUpload"
+          accept=".csv"
+          onChange={handleCSVUpload}
+          className="hidden"
+        />
+      </div>
+
 
       {/* Client Table */}
       <table className="w-full border-collapse min-w-[1000px]">
