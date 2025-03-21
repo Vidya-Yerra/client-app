@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
+
 const months = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
@@ -38,6 +39,9 @@ function getClientStatus(payments, fixedAmount) {
 
 export default function ClientTable({ clients, year, onSavePage }) {
   const [clientData, setClientData] = useState([]);
+  const [newClient, setNewClient] = useState({ name: '', phone: '', fixedAmount: '' });
+  const [showAddForm, setShowAddForm] = useState(false);
+
 
   useEffect(() => {
     const initialData = clients.map(client => ({
@@ -68,8 +72,92 @@ export default function ClientTable({ clients, year, onSavePage }) {
     }
   };
 
+  const handleAddClient = async () => {
+    if (!newClient.name || !newClient.phone || !newClient.fixedAmount) {
+      alert('Please fill all fields');
+      return;
+    }
+  
+    try {
+      const token = localStorage.getItem('token'); 
+      const res = await fetch('http://localhost:5000/clients', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newClient),
+      });
+  
+      if (res.ok) {
+        const savedClient = await res.json();
+  
+        const newClientWithPayments = {
+          ...savedClient,
+          editablePayments: Array(12).fill(0),
+        };
+  
+        setClientData([...clientData, newClientWithPayments]);
+        setNewClient({ name: '', phone: '', fixedAmount: '' });
+        setShowAddForm(false);
+      } else {
+        console.error('Failed to add client');
+      }
+    } catch (error) {
+      console.error('Error adding client:', error);
+    }
+  };
+  
+  
+
   return (
     <div className="overflow-auto border rounded shadow bg-white p-4">
+      {/* Add Client Button */}
+      <div className="mb-4">
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
+        >
+          {showAddForm ? 'Cancel' : 'Add Client'}
+        </button>
+      </div>
+
+      {/* Add Client Form */}
+      {showAddForm && (
+        <div className="mb-4 p-4 border rounded bg-gray-50">
+          <div className="flex gap-4 mb-2">
+            <input
+              type="text"
+              placeholder="Client Name"
+              value={newClient.name}
+              onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
+              className="border p-2 rounded w-1/3"
+            />
+            <input
+              type="text"
+              placeholder="Phone Number"
+              value={newClient.phone}
+              onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
+              className="border p-2 rounded w-1/3"
+            />
+            <input
+              type="number"
+              placeholder="Fixed Amount"
+              value={newClient.fixedAmount}
+              onChange={(e) => setNewClient({ ...newClient, fixedAmount: e.target.value })}
+              className="border p-2 rounded w-1/3"
+            />
+          </div>
+          <button
+            onClick={handleAddClient}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+          >
+            Done
+          </button>
+        </div>
+      )}
+
+      {/* Client Table */}
       <table className="w-full border-collapse min-w-[1000px]">
         <thead className="bg-gray-100 text-left">
           <tr>
@@ -89,7 +177,7 @@ export default function ClientTable({ clients, year, onSavePage }) {
               <tr key={index} className="text-sm hover:bg-gray-50">
                 <td className="p-2 border">{client.name}</td>
                 <td className="p-2 border">{client.phone}</td>
-                <td className="p-2 border">${client.fixedAmount}</td>
+                <td className="p-2 border">{client.fixedAmount}</td>
                 {status.map((month, i) => (
                   <td key={i} className="p-2 border text-center">
                     <input
@@ -116,7 +204,7 @@ export default function ClientTable({ clients, year, onSavePage }) {
           onClick={handleSaveClick}
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
         >
-          Save 
+          Save
         </button>
       </div>
     </div>
