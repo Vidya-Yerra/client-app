@@ -41,7 +41,7 @@ export default function ClientTable({ clients, year, onSavePage }) {
   const [clientData, setClientData] = useState([]);
   const [newClient, setNewClient] = useState({ name: '', phone: '', fixedAmount: '' });
   const [showAddForm, setShowAddForm] = useState(false);
-
+  const [editIndex, setEditIndex] = useState(null);
 
   useEffect(() => {
     const initialData = clients.map(client => ({
@@ -108,6 +108,61 @@ export default function ClientTable({ clients, year, onSavePage }) {
     }
   };
   
+  const handleEditToggle = (index) => {
+    setEditIndex(index === editIndex ? null : index);
+  };
+
+  const handleUpdateClient = async (index) => {
+    const client = clientData[index];
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:5000/clients/${client._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: client.name,
+          phone: client.phone,
+          fixedAmount: client.fixedAmount,
+        }),
+      });
+
+      if (res.ok) {
+        setEditIndex(null);
+      } else {
+        console.error('Failed to update client');
+      }
+    } catch (err) {
+      console.error('Error updating client:', err);
+    }
+  };
+
+  const handleDeleteClient = async (index) => {
+    const client = clientData[index];
+    if (!window.confirm(`Are you sure you want to delete ${client.name}?`)) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:5000/clients/${client._id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        const updated = [...clientData];
+        updated.splice(index, 1);
+        setClientData(updated);
+      } else {
+        console.error('Failed to delete client');
+      }
+    } catch (err) {
+      console.error('Error deleting client:', err);
+    }
+  };
   
 
   return (
@@ -167,17 +222,63 @@ export default function ClientTable({ clients, year, onSavePage }) {
             {months.map((month) => (
               <th key={month} className="p-2 border text-center">{month}</th>
             ))}
+            <th className="p-2 border text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
           {clientData.map((client, index) => {
             const status = getClientStatus(client.editablePayments, client.fixedAmount);
+            const isEditing = index === editIndex;
 
             return (
               <tr key={index} className="text-sm hover:bg-gray-50">
-                <td className="p-2 border">{client.name}</td>
-                <td className="p-2 border">{client.phone}</td>
-                <td className="p-2 border">{client.fixedAmount}</td>
+                <td className="p-2 border">
+                  {isEditing ? (
+                    <input
+                      className="border p-1 rounded w-full"
+                      value={client.name}
+                      onChange={(e) => {
+                        const updated = [...clientData];
+                        updated[index].name = e.target.value;
+                        setClientData(updated);
+                      }}
+                    />
+                  ) : (
+                    client.name
+                  )}
+                </td>
+                <td className="p-2 border">
+                  {isEditing ? (
+                    <input
+                      className="border p-1 rounded w-full"
+                      value={client.phone}
+                      onChange={(e) => {
+                        const updated = [...clientData];
+                        updated[index].phone = e.target.value;
+                        setClientData(updated);
+                      }}
+                    />
+                  ) : (
+                    client.phone
+                  )}
+                </td>
+                <td className="p-2 border">
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      className="border p-1 rounded w-full"
+                      value={client.fixedAmount}
+                      onChange={(e) => {
+                        const updated = [...clientData];
+                        updated[index].fixedAmount = e.target.value;
+                        setClientData(updated);
+                      }}
+                    />
+                  ) : (
+                    client.fixedAmount
+                  )}
+                </td>
+
                 {status.map((month, i) => (
                   <td key={i} className="p-2 border text-center">
                     <input
@@ -192,13 +293,37 @@ export default function ClientTable({ clients, year, onSavePage }) {
                     </div>
                   </td>
                 ))}
+
+                <td className="p-2 border text-center whitespace-nowrap">
+                  {isEditing ? (
+                    <button
+                      onClick={() => handleUpdateClient(index)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded mr-2"
+                    >
+                      Save
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleEditToggle(index)}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded mr-2"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDeleteClient(index)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             );
           })}
         </tbody>
       </table>
 
-      {/* Save Button for the Page */}
+      {/* Save Button for All Payments */}
       <div className="mt-4 flex justify-end">
         <button
           onClick={handleSaveClick}
