@@ -136,7 +136,7 @@ router.post('/:clientId/payments', verifyToken, async (req, res) => {
         Oct: 'October', Nov: 'November', Dec: 'December'
       }[month] || month;
 
-      client.updateMonthlyPayment(String(year), monthFull, amount);
+      
     }
     client.markModified('payments');
 

@@ -119,7 +119,7 @@ const handleSavePage = async (updatedClients) => {
         const formattedPayments = months.map((month, idx) => ({
           year: client.year,
           month,
-          amount: Number(client.updatedPayments[idx]) || 0,
+          enteredAmount: Number(client.updatedPayments[idx]) || 0,
         }));
   
         console.log("Submitting payments for", client.clientId);
@@ -127,7 +127,7 @@ const handleSavePage = async (updatedClients) => {
   
         const payload = { payments: formattedPayments };
   
-        const res = await fetch(`http://localhost:5000/clients/${client.clientId}/payments`, {
+        const res = await fetch(`http://localhost:5000/payments/${client.clientId}/payments`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

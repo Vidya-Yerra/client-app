@@ -5,52 +5,48 @@ import { verifyToken } from '../middlewares/authmiddleware.js';
 
 const router = express.Router();
 
-const monthOrder = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
+function recalculatePayments(client, year) {
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
 
-// Recalculate payments map for client
-const recalculateClientPayments = async (clientId) => {
-  const client = await Client.findById(clientId);
-  const payments = await Payment.find({ client: clientId });
+  if (!client.payments[year]) return;
 
-  const fixedAmount = client.fixedAmount;
-  const paymentMap = {};
+  let totalExpected = 0;
+  let totalPaid = 0;
 
-  payments.sort((a, b) => {
-    if (a.year !== b.year) return a.year - b.year;
-    return monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month);
-  });
-
-  for (const p of payments) {
-    if (!paymentMap[p.year]) paymentMap[p.year] = {};
-    if (!paymentMap[p.year][p.month]) {
-      paymentMap[p.year][p.month] = { amount: 0, isPaid: false, carriedFromPrevious: 0 };
-    }
-
-    const current = paymentMap[p.year][p.month];
-    const total = current.amount + p.enteredAmount;
-
-    if (total >= fixedAmount) {
-      paymentMap[p.year][p.month] = {
-        amount: fixedAmount,
-        isPaid: true,
-        carriedFromPrevious: total - fixedAmount
-      };
-    } else {
-      paymentMap[p.year][p.month] = {
-        amount: total,
+  months.forEach(month => {
+    if (!client.payments[year][month]) {
+      client.payments[year][month] = {
+        amount: 0,
+        carriedFromPrevious: 0,
         isPaid: false,
-        carriedFromPrevious: 0
+        balance: 0
       };
     }
-  }
 
-  client.payments = paymentMap;
-  await client.save();
-  return client;
-};
+    const monthData = client.payments[year][month];
+
+    const amount = typeof monthData.amount === 'number' ? monthData.amount : 0;
+
+    const carried = monthData.carriedFromPrevious || 0;
+
+    totalExpected += client.fixedAmount;
+    totalPaid += amount;
+
+    const balance = totalExpected - totalPaid;
+
+    // Preserve the actual amount entered — do not override
+    client.payments[year][month] = {
+      ...monthData,
+      amount,
+      isPaid: totalPaid >= totalExpected,
+      carriedFromPrevious: carried,
+      balance: balance > 0 ? balance : 0
+    };
+  });
+}
 
 // POST: Add payment
 router.post('/:clientId', verifyToken, async (req, res) => {
@@ -66,10 +62,20 @@ router.post('/:clientId', verifyToken, async (req, res) => {
     const payment = new Payment({ client: clientId, enteredAmount, month, year });
     await payment.save();
 
-    const updatedClient = await recalculateClientPayments(clientId);
+    if (!client.payments[year]) client.payments[year] = {};
+    client.payments[year][month] = {
+      amount: enteredAmount,
+      isPaid: false,
+      carriedFromPrevious: 0,
+      balance: 0,
+    };
 
-    res.status(201).json({ message: 'Payment recorded', payment, updatedClient });
+    recalculatePayments(client, year);
+    await client.save();
+
+    res.status(201).json({ message: 'Payment recorded', payment });
   } catch (err) {
+    console.error("Add payment error:", err);
     res.status(500).json({ message: 'Error adding payment', error: err.message });
   }
 });
@@ -84,12 +90,28 @@ router.put('/:paymentId', verifyToken, async (req, res) => {
     if (client.user.toString() !== req.userId)
       return res.status(403).json({ message: 'Unauthorized access' });
 
-    const updatedPayment = await Payment.findByIdAndUpdate(req.params.paymentId, req.body, { new: true });
+    const { enteredAmount } = req.body;
+    payment.enteredAmount = enteredAmount;
+    await payment.save();
 
-    const updatedClient = await recalculateClientPayments(client._id);
+    if (!client.payments[payment.year]) client.payments[payment.year] = {};
+    if (!client.payments[payment.year][payment.month]) {
+      client.payments[payment.year][payment.month] = {
+        amount: 0,
+        isPaid: false,
+        carriedFromPrevious: 0,
+        balance: 0,
+      };
+    }
 
-    res.status(200).json({ message: 'Payment updated', updatedPayment, updatedClient });
+    client.payments[payment.year][payment.month].amount = enteredAmount;
+
+    recalculatePayments(client, payment.year);
+    await client.save();
+
+    res.status(200).json({ message: 'Payment updated', updatedPayment: payment });
   } catch (err) {
+    console.error("Update payment error:", err);
     res.status(500).json({ message: 'Error updating payment', error: err.message });
   }
 });
@@ -105,10 +127,18 @@ router.delete('/:paymentId', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized access' });
 
     await Payment.findByIdAndDelete(req.params.paymentId);
-    const updatedClient = await recalculateClientPayments(client._id);
 
-    res.status(200).json({ message: 'Payment deleted', updatedClient });
+    // Remove from client.payments
+    if (client.payments[payment.year]?.[payment.month]) {
+      delete client.payments[payment.year][payment.month];
+    }
+
+    recalculatePayments(client, payment.year);
+    await client.save();
+
+    res.status(200).json({ message: 'Payment deleted' });
   } catch (err) {
+    console.error("Delete payment error:", err);
     res.status(500).json({ message: 'Error deleting payment', error: err.message });
   }
 });
@@ -124,7 +154,56 @@ router.get('/client/:clientId', verifyToken, async (req, res) => {
     const payments = await Payment.find({ client: client._id }).sort({ year: -1, month: -1 });
     res.status(200).json(payments);
   } catch (err) {
+    console.error("Get payments error:", err);
     res.status(500).json({ message: 'Error fetching payments', error: err.message });
+  }
+});
+
+// POST: Bulk save payments for a client (replaces existing for same year)
+router.post('/:clientId/payments', verifyToken, async (req, res) => {
+  const { clientId } = req.params;
+  const { payments } = req.body;
+
+  try {
+    const client = await Client.findById(clientId);
+    if (!client) return res.status(404).json({ message: 'Client not found' });
+    if (client.user.toString() !== req.userId)
+      return res.status(403).json({ message: 'Unauthorized access' });
+
+    const yearsToDelete = [...new Set(payments.map(p => p.year))];
+
+    await Payment.deleteMany({ client: clientId, year: { $in: yearsToDelete } });
+
+    const newPayments = payments.map(p => ({
+      client: clientId,
+      enteredAmount: p.enteredAmount,
+      month: p.month,
+      year: p.year,
+    }));
+
+    await Payment.insertMany(newPayments);
+
+    // Rebuild client.payments from scratch for those years
+    for (let year of yearsToDelete) {
+      client.payments[year] = {};
+      const yearPayments = newPayments.filter(p => p.year === year);
+      for (let p of yearPayments) {
+        client.payments[year][p.month] = {
+          amount: p.enteredAmount,
+          isPaid: false,
+          carriedFromPrevious: 0,
+          balance: 0,
+        };
+      }
+      recalculatePayments(client, year);
+    }
+
+    await client.save();
+
+    res.status(201).json({ message: 'Payments saved successfully' });
+  } catch (err) {
+    console.error("Bulk save payments error:", err);
+    res.status(500).json({ message: 'Error saving payments', error: err.message });
   }
 });
 
