@@ -163,6 +163,7 @@ router.get('/client/:clientId', verifyToken, async (req, res) => {
 router.post('/:clientId/payments', verifyToken, async (req, res) => {
   const { clientId } = req.params;
   const { payments } = req.body;
+  console.log("payments:",payments);
 
   try {
     const client = await Client.findById(clientId);
@@ -188,6 +189,7 @@ router.post('/:clientId/payments', verifyToken, async (req, res) => {
       client.payments[year] = {};
       const yearPayments = newPayments.filter(p => p.year === year);
       for (let p of yearPayments) {
+
         client.payments[year][p.month] = {
           amount: p.enteredAmount,
           isPaid: false,
@@ -197,9 +199,13 @@ router.post('/:clientId/payments', verifyToken, async (req, res) => {
       }
       recalculatePayments(client, year);
     }
-
+    client.markModified('payments');
+    console.log("Recalculated payments ",client.payments);
     await client.save();
-
+    const client_1 = await Client.findById(clientId);
+    console.log("New payments: ",newPayments);
+    console.log("Client Id: ",clientId);
+    console.log("Recalculated client after saving client ",client_1, client_1.payments);
     res.status(201).json({ message: 'Payments saved successfully' });
   } catch (err) {
     console.error("Bulk save payments error:", err);

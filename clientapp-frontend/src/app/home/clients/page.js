@@ -103,7 +103,7 @@ export default function ClientsPage() {
   }, [searchTerm, clients]);
 
   const paginatedClients = filteredClients.slice((page - 1) * pageSize, page * pageSize);
-
+  console.log("Paginated clients: ", paginatedClients);
   // Save updated payments
 const handleSavePage = async (updatedClients) => {
     const token = localStorage.getItem('token');

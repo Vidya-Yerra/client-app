@@ -39,7 +39,9 @@ router.get('/', verifyToken, async (req, res) => {
     if (!clients || clients.length === 0) {
       return res.status(404).json({ message: 'No clients found for this user.' });
     }
-
+    console.log(
+      
+    )
     // Send the clients as a response
     res.status(200).json(clients);
   } catch (err) {
