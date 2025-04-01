@@ -31,7 +31,7 @@ export default function Login() {
 
       if (res.ok) {
         localStorage.setItem('token', data.token);
-        router.push('https://client-app-frontend-7.onrender.com/home/clients');
+        router.push('/home/clients');
       } else {
         alert(data.message || 'Login failed')
       }
