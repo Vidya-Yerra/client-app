@@ -17,7 +17,7 @@ app.use(cookieParser());
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000', // frontend origin
+  origin: 'https://client-app-frontend-7.onrender.com', // frontend origin
   credentials: true,              // allow cookies to be sent
 }));
 app.use(express.json());
