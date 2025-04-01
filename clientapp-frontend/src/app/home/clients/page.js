@@ -45,7 +45,7 @@ export default function ClientsPage() {
       }
       
       console.log("Fetching clients...");
-      const response = await fetch('https://client-app-6.onrender.comclients', {
+      const response = await fetch('https://client-app-6.onrender.com/clients', {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -127,7 +127,7 @@ const handleSavePage = async (updatedClients) => {
   
         const payload = { payments: formattedPayments };
   
-        const res = await fetch(`https://client-app-6.onrender.compayments/${client.clientId}/payments`, {
+        const res = await fetch(`https://client-app-6.onrender.com//payments/${client.clientId}/payments`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -9,7 +9,7 @@ const ClientPayments = ({ clientId, clientData }) => {
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch(`https://client-app-6.onrender.comclients/${clientId}`, {
+      const response = await fetch(`https://client-app-6.onrender.com/clients/${clientId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
