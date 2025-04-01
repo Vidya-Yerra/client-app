@@ -22,7 +22,7 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:5000/auth/register', {
+      const res = await fetch('https://client-app-6.onrender.comauth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

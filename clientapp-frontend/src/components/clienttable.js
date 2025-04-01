@@ -81,7 +81,7 @@ export default function ClientTable({ clients, year, onSavePage }) {
   
     try {
       const token = localStorage.getItem('token'); 
-      const res = await fetch('http://localhost:5000/clients', {
+      const res = await fetch('https://client-app-6.onrender.comclients', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ export default function ClientTable({ clients, year, onSavePage }) {
     const client = clientData[index];
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/clients/${client._id}`, {
+      const res = await fetch(`https://client-app-6.onrender.comclients/${client._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -146,7 +146,7 @@ export default function ClientTable({ clients, year, onSavePage }) {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/clients/${client._id}`, {
+      const res = await fetch(`https://client-app-6.onrender.comclients/${client._id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -187,7 +187,7 @@ export default function ClientTable({ clients, year, onSavePage }) {
         }));
         console.log("parsedclients:",parsedClients);
         try {
-          const response = await fetch("http://localhost:5000/clients/upload-csv", {
+          const response = await fetch("https://client-app-6.onrender.comclients/upload-csv", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
