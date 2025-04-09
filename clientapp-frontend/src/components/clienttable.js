@@ -213,7 +213,7 @@ export default function ClientTable({ clients, year, onSavePage }) {
   
 
   return (
-    <div className="overflow-auto border rounded shadow bg-[#1a1f36] text-white p-4">
+    <div className="overflow-auto border rounded shadow bg-[#1a1f36] text-white p-4 ">
       {/* Add Client Button */}
       <div className="mb-4">
         <button

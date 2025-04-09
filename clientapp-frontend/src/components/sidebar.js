@@ -7,8 +7,8 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="w-64 bg-gradient-to-b from-[#1a1f36] to-[#16252a] text-white flex flex-col">
-      <h1 className="text-2xl font-bold p-4 border-b border-[#2d3748] tracking-tight">Dashboard</h1>
+    <div className="w-full md:w-64 bg-gradient-to-b from-[#1a1f36] to-[#16252a] text-white flex flex-col">
+      <h1 className="text-xl md:text-2xl font-bold p-4 border-b border-[#2d3748] tracking-tight">Dashboard</h1>
       <nav className="flex-1">
         <ul className="space-y-1">
           <li>

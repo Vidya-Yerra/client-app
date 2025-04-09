@@ -17,12 +17,12 @@ export default function HomeLayout({ children }) {
   }, []);
 
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
+    <>
+
+      <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <main className="p-4 overflow-y-auto bg-gray-100">{children}</main>
+        <main className="p-2 md:p-4 overflow-y-auto bg-gray-100">{children}</main>
       </div>
-    </div>
+    </>
   );
 }
