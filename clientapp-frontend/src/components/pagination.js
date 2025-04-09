@@ -9,8 +9,10 @@ export default function Pagination({ currentPage, totalItems, pageSize, onPageCh
         <button
           key={index + 1}
           onClick={() => onPageChange(index + 1)}
-          className={`px-3 py-1 border rounded ${
-            currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white'
+          className={`px-3 py-1 border border-[#475569] rounded text-white transition-all duration-200 ${
+            currentPage === index + 1 
+              ? 'bg-[#2d3748] hover:bg-[#374151] font-semibold' 
+              : 'bg-[#1f2937] hover:bg-[#2d3748]'
           }`}
         >
           {index + 1}
