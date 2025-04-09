@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Papa from "papaparse";
 
-
 const months = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
@@ -214,12 +213,12 @@ export default function ClientTable({ clients, year, onSavePage }) {
   
 
   return (
-    <div className="overflow-auto border rounded shadow bg-white p-4">
+    <div className="overflow-auto border rounded shadow bg-[#1a1f36] text-white p-4">
       {/* Add Client Button */}
       <div className="mb-4">
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
+          className="bg-[#2d3748] hover:bg-[#374151] text-white font-semibold py-2 px-4 rounded transition-all duration-200"
         >
           {showAddForm ? 'Cancel' : 'Add Client'}
         </button>
@@ -227,33 +226,33 @@ export default function ClientTable({ clients, year, onSavePage }) {
 
       {/* Add Client Form */}
       {showAddForm && (
-        <div className="mb-4 p-4 border rounded bg-gray-50">
+        <div className="mb-4 p-4 border rounded bg-[#2d3748]">
           <div className="flex gap-4 mb-2">
             <input
               type="text"
               placeholder="Client Name"
               value={newClient.name}
               onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
-              className="border p-2 rounded w-1/3"
+              className="border border-[#475569] p-2 rounded w-1/3 bg-[#1f2937] text-white"
             />
             <input
               type="text"
               placeholder="Phone Number"
               value={newClient.phone}
               onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
-              className="border p-2 rounded w-1/3"
+              className="border border-[#475569] p-2 rounded w-1/3 bg-[#1f2937] text-white"
             />
             <input
               type="number"
               placeholder="Fixed Amount"
               value={newClient.fixedAmount}
               onChange={(e) => setNewClient({ ...newClient, fixedAmount: e.target.value })}
-              className="border p-2 rounded w-1/3"
+              className="border border-[#475569] p-2 rounded w-1/3 bg-[#1f2937] text-white"
             />
           </div>
           <button
             onClick={handleAddClient}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+            className="bg-[#2d3748] hover:bg-[#374151] text-white font-semibold py-2 px-4 rounded transition-all duration-200"
           >
             Done
           </button>
@@ -264,7 +263,7 @@ export default function ClientTable({ clients, year, onSavePage }) {
       <div className="mb-4">
         <button
           onClick={() => document.getElementById('csvUpload').click()}
-          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded"
+          className="bg-[#2d3748] hover:bg-[#374151] text-white font-semibold py-2 px-4 rounded transition-all duration-200"
         >
           Upload CSV
         </button>
@@ -277,18 +276,17 @@ export default function ClientTable({ clients, year, onSavePage }) {
         />
       </div>
 
-
       {/* Client Table */}
       <table className="w-full border-collapse min-w-[1000px]">
-        <thead className="bg-gray-100 text-left">
+        <thead className="bg-[#2d3748] text-left">
           <tr>
-            <th className="p-2 border">Name</th>
-            <th className="p-2 border">Phone</th>
-            <th className="p-2 border">Fixed Amount</th>
+            <th className="p-2 border border-[#475569]">Name</th>
+            <th className="p-2 border border-[#475569]">Phone</th>
+            <th className="p-2 border border-[#475569]">Fixed Amount</th>
             {months.map((month) => (
-              <th key={month} className="p-2 border text-center">{month}</th>
+              <th key={month} className="p-2 border border-[#475569] text-center">{month}</th>
             ))}
-            <th className="p-2 border text-center">Actions</th>
+            <th className="p-2 border border-[#475569] text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -297,11 +295,11 @@ export default function ClientTable({ clients, year, onSavePage }) {
             const isEditing = index === editIndex;
 
             return (
-              <tr key={index} className="text-sm hover:bg-gray-50">
-                <td className="p-2 border">
+              <tr key={index} className="text-sm hover:bg-[#2d3748]/50">
+                <td className="p-2 border border-[#475569]">
                   {isEditing ? (
                     <input
-                      className="border p-1 rounded w-full"
+                      className="border border-[#475569] p-1 rounded w-full bg-[#1f2937] text-white"
                       value={client.name}
                       onChange={(e) => {
                         const updated = [...clientData];
@@ -313,10 +311,10 @@ export default function ClientTable({ clients, year, onSavePage }) {
                     client.name
                   )}
                 </td>
-                <td className="p-2 border">
+                <td className="p-2 border border-[#475569]">
                   {isEditing ? (
                     <input
-                      className="border p-1 rounded w-full"
+                      className="border border-[#475569] p-1 rounded w-full bg-[#1f2937] text-white"
                       value={client.phone}
                       onChange={(e) => {
                         const updated = [...clientData];
@@ -328,11 +326,11 @@ export default function ClientTable({ clients, year, onSavePage }) {
                     client.phone
                   )}
                 </td>
-                <td className="p-2 border">
+                <td className="p-2 border border-[#475569]">
                   {isEditing ? (
                     <input
                       type="number"
-                      className="border p-1 rounded w-full"
+                      className="border border-[#475569] p-1 rounded w-full bg-[#1f2937] text-white"
                       value={client.fixedAmount}
                       onChange={(e) => {
                         const updated = [...clientData];
@@ -346,39 +344,39 @@ export default function ClientTable({ clients, year, onSavePage }) {
                 </td>
 
                 {status.map((month, i) => (
-                  <td key={i} className="p-2 border text-center">
+                  <td key={i} className="p-2 border border-[#475569] text-center">
                     <input
                       type="number"
-                      className="w-16 p-1 border rounded text-center mb-1"
+                      className="w-16 p-1 border border-[#475569] rounded text-center mb-1 bg-[#1f2937] text-white"
                       value={client.editablePayments[i]}
                       onChange={(e) => handlePaymentChange(index, i, e.target.value)}
                     />
                     <div className="mt-1">
                       {month.status}
-                      <div className="text-xs text-gray-600">Bal: {month.balance}</div>
+                      <div className="text-xs text-[#a0aec0]">Bal: {month.balance}</div>
                     </div>
                   </td>
                 ))}
 
-                <td className="p-2 border text-center whitespace-nowrap">
+                <td className="p-2 border border-[#475569] text-center whitespace-nowrap">
                   {isEditing ? (
                     <button
                       onClick={() => handleUpdateClient(index)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded mr-2"
+                      className="bg-[#2d3748] hover:bg-[#374151] text-white px-2 py-1 rounded mr-2 transition-all duration-200"
                     >
                       Save
                     </button>
                   ) : (
                     <button
                       onClick={() => handleEditToggle(index)}
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded mr-2"
+                      className="bg-[#2d3748] hover:bg-[#374151] text-white px-2 py-1 rounded mr-2 transition-all duration-200"
                     >
                       Edit
                     </button>
                   )}
                   <button
                     onClick={() => handleDeleteClient(index)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
+                    className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition-all duration-200"
                   >
                     Delete
                   </button>
@@ -393,7 +391,7 @@ export default function ClientTable({ clients, year, onSavePage }) {
       <div className="mt-4 flex justify-end">
         <button
           onClick={handleSaveClick}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+          className="bg-[#2d3748] hover:bg-[#374151] text-white font-semibold py-2 px-4 rounded transition-all duration-200"
         >
           Save
         </button>
